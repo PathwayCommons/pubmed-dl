@@ -56,7 +56,12 @@ def _compact(input: List) -> List:
 
 # -- Models --
 def get_element_text(cls, v):
-    return v if isinstance(v, str) else v["#text"]
+    if isinstance(v, str):
+      return v
+    elif isinstance(v, dict):
+      return v["#text"]
+    else:
+      return ''
 
 
 class PubDate(BaseModel):
@@ -100,7 +105,7 @@ def label_and_text_from_element(element: Union[str, dict]):
 
 
 class Abstract(BaseModel):
-    AbstractText: Union[str, dict, List[Union[dict, str]], None]
+    AbstractText: Union[str, dict, List[Union[dict, str, None]], None]
 
     # Can be str, dict, or list of dict/str
     @validator("AbstractText")
@@ -110,6 +115,8 @@ class Abstract(BaseModel):
             update += label_and_text_from_element(v)
         elif v:
             for element in v:
+                if not element:
+                  continue
                 if update:
                     update += " "
                 update += label_and_text_from_element(element)
@@ -118,7 +125,7 @@ class Abstract(BaseModel):
 
 class Article(BaseModel):
     Journal: Journal
-    ArticleTitle: Union[str, dict]
+    ArticleTitle: Union[str, dict, None]
     Abstract: Optional[Abstract]
 
     # validators
