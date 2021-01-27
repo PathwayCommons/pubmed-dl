@@ -9,16 +9,20 @@ from dotenv import load_dotenv
 from pydantic import BaseModel, BaseSettings, validator
 
 import json
+import io
+from Bio import Medline
+
+
+# -- Utilities --
+def _compact(input: List) -> List:
+    """Returns a list with None, False, and empty String removed"""
+    return [x for x in input if x is not None and x is not False and x != ""]
+
 
 # -- Setup and initialization --
 MAX_EFETCH_RETMAX = 10000
-#dot_env_filepath = Path(__file__).absolute().parent.parent / ".env"
-load_dotenv(".env")
-year_pattern = re.compile(r"(?P<year>\d{4})")
-number_pattern = re.compile(r"^[0-9]+$")
-# ncbi_pubdate_pattern = re.compile(r"^(?P<year>\d{4})(\s(?P<month>[a-zA-Z\-]+))?(\s(?P<day>\d{1,2}))?$")
-# ncbi_month_pattern = re.compile(r"^[a-zA-Z]{3}$")
-
+dot_env_filepath = Path(__file__).absolute().parent / ".env"
+load_dotenv(dot_env_filepath)
 
 class Settings(BaseSettings):
     app_name: str = os.getenv("APP_NAME", "")
@@ -31,130 +35,7 @@ class Settings(BaseSettings):
     eutils_esummary_url: str = eutils_base_url + os.getenv("EUTILS_ESUMMARY_BASENAME", "")
     http_request_timeout: int = int(os.getenv("HTTP_REQUEST_TIMEOUT", -1))
 
-
 settings = Settings()
-
-
-# -- Utilities --
-def _get(input: Dict, path: List, default=None) -> Any:
-    """Returns the value for the path, which specifies the key (index) of the next Dict (List)"""
-    internal_dict_value = input
-    for k in path:
-        if number_pattern.match(k):
-            internal_dict_value = internal_dict_value[int(k)]
-        else:
-            internal_dict_value = internal_dict_value.get(k, None)
-        if internal_dict_value is None:
-            return default
-    return internal_dict_value
-
-
-def _compact(input: List) -> List:
-    """Returns a list with None, False, and empty String removed"""
-    return [x for x in input if x is not None and x is not False and x != ""]
-
-
-# -- Models --
-def get_element_text(cls, v):
-    if isinstance(v, str):
-      return v
-    elif isinstance(v, dict):
-      return v["#text"]
-    else:
-      return ''
-
-
-class PubDate(BaseModel):
-    Year: str = ""
-    Month: str = ""
-    Day: str = ""
-    Season: Optional[str]
-    MedlineDate: Optional[str]
-
-    @validator("MedlineDate")
-    def populate_year(cls, v, values):
-        year_match = year_pattern.match(v)
-        if year_match:
-            Year = year_match.groupdict()["year"]
-            values["Year"] = Year
-        return v
-
-
-class JournalIssue(BaseModel):
-    Volume: str = ""
-    Issue: str = ""
-    PubDate: PubDate
-
-
-class Journal(BaseModel):
-    Title: str = ""
-    ISOAbbreviation: str = ""
-    JournalIssue: JournalIssue
-
-
-def label_and_text_from_element(element: Union[str, dict]):
-    if isinstance(element, str):
-        return element
-    elif isinstance(element, dict):
-        text = ""
-        Label = _get(element, ["@Label"], "")
-        if Label:
-            text += Label + ": "
-        text += _get(element, ["#text"], "")
-        return text
-
-
-class Abstract(BaseModel):
-    AbstractText: Union[str, dict, List[Union[dict, str, None]], None]
-
-    # Can be str, dict, or list of dict/str
-    @validator("AbstractText")
-    def combine_labels_and_texts(cls, v):
-        update = ""
-        if v and (isinstance(v, str) or isinstance(v, dict)):
-            update += label_and_text_from_element(v)
-        elif v:
-            for element in v:
-                if not element:
-                  continue
-                if update:
-                    update += " "
-                update += label_and_text_from_element(element)
-        return update
-
-
-class Article(BaseModel):
-    Journal: Journal
-    ArticleTitle: Union[str, dict, None]
-    Abstract: Optional[Abstract]
-
-    # validators
-    _textify_article_title = validator("ArticleTitle", allow_reuse=True)(get_element_text)
-
-    @validator("Abstract")
-    def merge_abstract_text(cls, v):
-        return v.AbstractText
-
-
-class MedlineCitation(BaseModel):
-    PMID: dict
-    Article: Article
-
-    # validators
-    _textify_pmid = validator("PMID", allow_reuse=True)(get_element_text)
-
-
-class PubmedArticle(BaseModel):
-    MedlineCitation: MedlineCitation
-
-
-class PubmedArticleSet(BaseModel):
-    PubmedArticle: Union[PubmedArticle, List[PubmedArticle]]
-
-
-class PubmedEfetchResponse(BaseModel):
-    PubmedArticleSet: PubmedArticleSet
-
 
 # -- NCBI EUTILS --
 def _safe_request(url: str, method: str = "GET", headers={}, **opts):
@@ -178,6 +59,13 @@ def _safe_request(url: str, method: str = "GET", headers={}, **opts):
     else:
         return r
 
+def _parse_medline(text: str) -> List[dict]:
+    """Convert the rettype=medline to dict.
+       See https://www.nlm.nih.gov/bsd/mms/medlineelements.html
+    """
+    f = io.StringIO( text )
+    medline_records = Medline.parse( f )
+    return list( medline_records )
 
 def _get_eutil_records(eutil: str, id: List[str], **opts) -> dict:
     """Call one of the NCBI EUTILITIES and returns data as Python objects."""
@@ -196,21 +84,21 @@ def _get_eutil_records(eutil: str, id: List[str], **opts) -> dict:
     else:
         raise ValueError(f"Unsupported eutil '{eutil}''")
     eutilResponse = _safe_request(url, "POST", files=eutils_params)
-    doc = xmltodict.parse(eutilResponse.text)
+    doc = _parse_medline(eutilResponse.text)
     return doc
 
-
-def _articles_to_docs(articles: List[PubmedArticle]) -> List[Dict[str, Collection[Any]]]:
-    """Return a list Documents given a PubmedArticle"""
+def _medline_to_docs(records: List[Dict[str, str]]) -> List[Dict[str, Collection[Any]]]:
+    """Return a list Documents given a list of Medline records
+       See https://www.nlm.nih.gov/bsd/mms/medlineelements.html
+    """
     docs = []
-    for pubmed_article in articles:
-        abstract = pubmed_article.MedlineCitation.Article.Abstract
-        title = pubmed_article.MedlineCitation.Article.ArticleTitle
+    for record in records:
+        pmid = record["PMID"]
+        abstract = record["AB"] if "AB" in record else ""
+        title = record["TI"] if "TI" in record else ""
         text = " ".join(_compact([title, abstract]))
-        pmid = pubmed_article.MedlineCitation.PMID
         docs.append({"uid": pmid, "text": text})
     return docs
-
 
 # -- Public methods --
 def uids_to_docs(uids: List[str]) -> List[Dict[str, Collection[Any]]]:
@@ -223,24 +111,18 @@ def uids_to_docs(uids: List[str]) -> List[Dict[str, Collection[Any]]]:
         upper = min([lower + MAX_EFETCH_RETMAX, num_uids])
         id = uids[lower:upper]
         try:
-            eutil_response = _get_eutil_records("efetch", id)
-            ERROR = _get(eutil_response, ["eFetchResult", "ERROR"])
-            if ERROR:
-                raise RuntimeError(ERROR)
-            pubmedEfetchReponse = PubmedEfetchResponse(**eutil_response)
-            pubmedArticle = pubmedEfetchReponse.PubmedArticleSet.PubmedArticle
+            eutil_response = _get_eutil_records("efetch", id, rettype="medline", retmode="text")
         except Exception as e:
             print(f"Error encountered in uids_to_docs {e}")
             raise e
         else:
-            articles = pubmedArticle if isinstance(pubmedArticle, list) else [pubmedArticle]
-            output = _articles_to_docs(articles)
+            output = _medline_to_docs( eutil_response )
             docs = docs + output
     return docs
 
 def main():
     ab = open("test.json", 'w')
-    store = ["33453708", "33453707", "33453706", "33453705"]
+    store = ["33303698", "33278872", "33279447"]
     here = uids_to_docs(store)
     for item in here:
         ab.write(json.dumps(item))
