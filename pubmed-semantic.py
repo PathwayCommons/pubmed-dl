@@ -65,7 +65,7 @@ def _parse_medline(text: str) -> List[dict]:
     """
     f = io.StringIO( text )
     medline_records = Medline.parse( f )
-    return list( medline_records )
+    return medline_records
 
 def _get_eutil_records(eutil: str, id: List[str], **opts) -> dict:
     """Call one of the NCBI EUTILITIES and returns data as Python objects."""
@@ -84,8 +84,7 @@ def _get_eutil_records(eutil: str, id: List[str], **opts) -> dict:
     else:
         raise ValueError(f"Unsupported eutil '{eutil}''")
     eutilResponse = _safe_request(url, "POST", files=eutils_params)
-    doc = _parse_medline(eutilResponse.text)
-    return doc
+    return _parse_medline(eutilResponse.text)
 
 def _medline_to_docs(records: List[Dict[str, str]]) -> List[Dict[str, Collection[Any]]]:
     """Return a list Documents given a list of Medline records
@@ -121,12 +120,14 @@ def uids_to_docs(uids: List[str]) -> List[Dict[str, Collection[Any]]]:
     return docs
 
 def main():
-    ab = open("test.json", 'w')
-    store = ["33303698", "33278872", "33279447"]
+    print(settings)
+    # ab = open("test.json", 'w')
+    store = ["33303698", "33278872", "33279447", "33279447", "33278872", "33303698"]
     here = uids_to_docs(store)
-    for item in here:
-        ab.write(json.dumps(item))
-    ab.close()
+    [ print( r ) for r in here ]
+    # for item in here:
+    #     ab.write(json.dumps(item))
+    # ab.close()
 
 if __name__ == "__main__":
     main()
