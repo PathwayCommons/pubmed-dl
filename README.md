@@ -10,10 +10,16 @@ Works by taking in a list of PMID's and returns all their data as a JSON diction
 ```
 {"uid": 'PMID here', "text": "Title and Abstract joined here"}
 ```
+Uses batches of 10,000 PMID's from the list passed to it for each iteration, until the list is completely read. Method also throws exceptions with detailed information of the cause of the exception.
 
 *get_list_pmid*
 
-Works by taking in two strings that consist of the start and end date respectively in the YYYY/MM/DD format (ex: "2020/01/10"). This program returns a list of all PMID's that were uploaded in the requested time frame. It uses the PubMed EUTILS URL's to send a request using the start and end dates, with extra filters for only Journal Articles (Publication type) and English for the language. It creates a .json file (for every 10,000 records) with the URL request then reads through it and stores all the PMID's in a list. If there are more than 10,000 records (which would mean there is more than 1 file) then the method goes through all the files and grabs all the PMID's and stores it in a list called 'store'. This list is returned by the method once all the files are read then deleted.
+Works by taking in two strings that consist of the start and end date respectively in the YYYY/MM/DD format (ex: "2020/01/10"). This method outputs the URL's for each batch of 10,000 records in the format of
+```
+URL 1: "Link for the data of records from 0 - 10000"
+URL 2: "Link for the data of records from 10000 - 20000"
+```
+This method also returns a list of all PMID's that were uploaded in the requested time frame. It uses the PubMed EUTILS URL's to send a request using the start and end dates, with extra filters for only Journal Articles (Publication type) and English for the language. It creates a .json file (for every 10,000 records) with the URL request then reads through it and stores all the PMID's in a list. If there are more than 10000 records (which would mean there is more than 1 file) then the method goes through all the files and grabs all the PMID's and stores it in a list called 'store'. This list is returned by the method once all the files are read then deleted for memory efficiency.
 
 **Example**
 
