@@ -6,7 +6,10 @@ A program developed for the easy retrieval of Pubmed records over a given time. 
 
 *uids_to_docs*
 
-Works by taking in a list of PMID's and returns all their data as a JSON dictionary. Outputs in the format of {"uid": 'PMID here', "text": "Title and Abstract joined here"}
+Works by taking in a list of PMID's and returns all their data as a JSON dictionary. Outputs in the format of 
+```
+{"uid": 'PMID here', "text": "Title and Abstract joined here"}
+```
 
 *get_list_pmid*
 
