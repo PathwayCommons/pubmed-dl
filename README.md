@@ -1,6 +1,6 @@
 **Usage**
 
-A program developed for the easy retrieval of Pubmed records over a given time. Can be run from command line using user inputted dates.
+A program developed for the easy retrieval of Pubmed record data (PMID, Title, Abstract) over a given time. Can be run from command line using user inputted dates.
 
 **Public methods**
 
