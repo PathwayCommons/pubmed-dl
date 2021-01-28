@@ -2,6 +2,12 @@
 
 A program developed for the easy retrieval of Pubmed record data (PMID, Title, Abstract) over a given time. Can be run from command line using user inputted dates.
 
+**Information**
+
+The example and explanations below are based on the script's behaviour on Python 3.8
+
+Use an API key provided to you from NCBI in the ```.env``` file for the expected workings of this program.
+
 **Public methods**
 
 *uids_to_docs*
@@ -23,7 +29,7 @@ This method also returns a list of all PMID's that were uploaded in the requeste
 
 **Example**
 
-An example usage is by getting the list of PMID's from get_list_pmid and then passing that list to the uids_to_docs for the data of all the PMID's in the given time frame.
+An example usage is by getting the list of PMID's from ```get_list_pmid``` and then passing that list to the ```uids_to_docs``` for the data of all the PMID's in the given time frame.
 
 Can be run on Command line with basic python run command
 ```
@@ -36,7 +42,7 @@ Enter start date (YYYY/MM/DD): "Enter your start date here"
 Enter end date (YYYY/MM/DD): "Enter your end date here"
 ```
 
-The Program then runs and outputs the total records and an URL for every 10,000 records, until all records have been downloaded. Immediately after this the program grabs the PMID's of all the records and then passes the list of PMID's to the ```uids_to_docs``` method, which then gets all the data (Title, Abstract) and writes it to a file named test.json.
+The Program then runs and outputs the total records and an URL for every 10,000 records, until all records have been downloaded. Immediately after this the program grabs the PMID's of all the records and then passes the list of PMID's to the ```uids_to_docs``` method, which then gets all the data (Title, Abstract) and writes it to a file named ```test.json```.
 
 After the Program is finished running, it will output a statement.
 ```
