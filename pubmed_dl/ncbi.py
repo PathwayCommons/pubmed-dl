@@ -1,25 +1,23 @@
+import io
 import os
-import re
-from pathlib import Path
-from typing import Any, Dict, List, Optional, Union, Collection
+from typing import Any, Collection, Dict, List
 
 import requests
-import xmltodict
-from dotenv import load_dotenv
-from pydantic import BaseModel, BaseSettings, validator
-
-import json
-import io
 from Bio import Medline
+from dotenv import load_dotenv
+from pydantic import BaseSettings
+
 
 def _compact(input: List) -> List:
     """Returns a list with None, False, and empty String removed"""
     return [x for x in input if x is not None and x is not False and x != ""]
 
+
 # -- Setup and initialization --
 MAX_EFETCH_RETMAX = 10000
-#dot_env_filepath = Path(__file__).absolute().parent.parent / ".env"
+# dot_env_filepath = Path(__file__).absolute().parent.parent / ".env"
 load_dotenv(".env")
+
 
 class Settings(BaseSettings):
     app_name: str = os.getenv("APP_NAME", "")
@@ -32,7 +30,9 @@ class Settings(BaseSettings):
     eutils_esummary_url: str = eutils_base_url + os.getenv("EUTILS_ESUMMARY_BASENAME", "")
     http_request_timeout: int = int(os.getenv("HTTP_REQUEST_TIMEOUT", -1))
 
+
 settings = Settings()
+
 
 # -- NCBI EUTILS --
 def _safe_request(url: str, method: str = "GET", headers={}, **opts):
@@ -56,13 +56,15 @@ def _safe_request(url: str, method: str = "GET", headers={}, **opts):
     else:
         return r
 
+
 def _parse_medline(text: str) -> List[dict]:
     """Convert the rettype=medline to dict.
-       See https://www.nlm.nih.gov/bsd/mms/medlineelements.html
+    See https://www.nlm.nih.gov/bsd/mms/medlineelements.html
     """
-    f = io.StringIO( text )
-    medline_records = Medline.parse( f )
+    f = io.StringIO(text)
+    medline_records = Medline.parse(f)
     return medline_records
+
 
 def _get_eutil_records(eutil: str, id: List[str], **opts) -> dict:
     """Call one of the NCBI EUTILITIES and returns data as Python objects."""
@@ -83,9 +85,10 @@ def _get_eutil_records(eutil: str, id: List[str], **opts) -> dict:
     eutilResponse = _safe_request(url, "POST", files=eutils_params)
     return _parse_medline(eutilResponse.text)
 
+
 def _medline_to_docs(records: List[Dict[str, str]]) -> List[Dict[str, Collection[Any]]]:
     """Return a list Documents given a list of Medline records
-       See https://www.nlm.nih.gov/bsd/mms/medlineelements.html
+    See https://www.nlm.nih.gov/bsd/mms/medlineelements.html
     """
     docs = []
     for record in records:
@@ -108,45 +111,55 @@ def uids_to_docs(uids: List[str]) -> List[Dict[str, Collection[Any]]]:
         upper = min([lower + MAX_EFETCH_RETMAX, num_uids])
         id = uids[lower:upper]
         try:
-           eutil_response = _get_eutil_records("efetch", id, rettype="medline", retmode="text")
+            eutil_response = _get_eutil_records("efetch", id, rettype="medline", retmode="text")
         except Exception as e:
             print(f"Error encountered in uids_to_docs {e}")
             raise e
         else:
-            output = _medline_to_docs( eutil_response )
+            output = _medline_to_docs(eutil_response)
             docs = docs + output
     return docs
 
+
 def get_list_pmid(start, end):
-    search_url = "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esearch.fcgi?db=pubmed&mindate="+start+"&maxdate="+end+"&term=(eng[Language])+AND+(Journal+Article[Publication+Type])&usehistory=y&retmode=json"
+    search_url = (
+        "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esearch.fcgi?db=pubmed&mindate="
+        + start
+        + "&maxdate="
+        + end
+        + "&term=(eng[Language])+AND+(Journal+Article[Publication+Type])&usehistory=y&retmode=json"
+    )
     search_r = requests.post(search_url)
     data = search_r.json()
-    webenv = data["esearchresult"]['webenv']
-    total = int(data["esearchresult"]['count'])
-    fetch_url = "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi?db=pubmed&retmax=9999&query_key=1&WebEnv="+webenv
-    print("Total records :"+str(total))
+    webenv = data["esearchresult"]["webenv"]
+    total = int(data["esearchresult"]["count"])
+    fetch_url = (
+        "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi?db=pubmed&retmax=9999&query_key=1&WebEnv="
+        + webenv
+    )
+    print("Total records:" + str(total))
     count = 1
     store = []
     for i in range(0, total, 10000):
-        this_fetch = fetch_url+"&retstart="+str(i)
-        print("URL "+str(count)+": "+this_fetch)
+        this_fetch = fetch_url + "&retstart=" + str(i)
+        print("URL " + str(count) + ": " + this_fetch)
         count += 1
         fetch_r = requests.post(this_fetch)
-        f = open('pubmed_batch_'+str(i)+'_to_'+str(i+9999)+".json", 'w')
+        f = open("pubmed_batch_" + str(i) + "_to_" + str(i + 9999) + ".json", "w")
         f.write(fetch_r.text)
         f.close()
     for i in range(0, total, 10000):
-        f = open('pubmed_batch_'+str(i)+'_to_'+str(i+9999)+".json", 'r')
+        f = open("pubmed_batch_" + str(i) + "_to_" + str(i + 9999) + ".json", "r")
         data_file = f.read()
         p_flag = False
         for word in data_file.split():
-            if word == 'pmid':
+            if word == "pmid":
                 p_flag = True
-            elif p_flag == True:
+            elif p_flag:
                 p_flag = False
                 if word[:-1] not in store:
                     store.append(word[:-1])
         f.close()
     for i in range(0, total, 10000):
-        os.remove('pubmed_batch_'+str(i)+'_to_'+str(i+9999)+".json")
+        os.remove("pubmed_batch_" + str(i) + "_to_" + str(i + 9999) + ".json")
     return store
