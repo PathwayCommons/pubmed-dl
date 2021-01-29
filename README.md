@@ -20,7 +20,7 @@ Uses batches of 10,000 PMID's from the list passed to it for each iteration, unt
 
 *get_list_pmid*
 
-Works by taking in two strings that consist of the start and end date respectively in the YYYY/MM/DD format (ex: "2020/01/10"). This method outputs the URL's for each batch of 10,000 records in the format of
+Works by taking in two strings that consist of the start and end date (publication dates) respectively in the YYYY/MM/DD format (ex: "2020/01/10"). This method outputs the URL's for each batch of 10,000 records in the format of
 ```
 URL 1: "Link for the data of records from 0 - 10000"
 URL 2: "Link for the data of records from 10000 - 20000"
