@@ -1,3 +1,5 @@
+![build](https://github.com/PathwayCommons/pubmed-dl/workflows/build/badge.svg)
+
 # pubmed-dl
 
 A program developed for the easy retrieval of Pubmed record data (PMID, Title, Abstract) over a given time. Can be run from command line using user inputted dates.
