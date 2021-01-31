@@ -7,7 +7,7 @@ setuptools.setup(
     name="pubmed-dl",
     version="0.1.0",
     author="Anweshi Anavadya",
-    author_email="",
+    author_email="anweshianavadya@gmail.com",
     description=("A simple Pubmed records download pipeline."),
     long_description=long_description,
     long_description_content_type="text/markdown",
