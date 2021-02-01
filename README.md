@@ -14,17 +14,18 @@ Before installing, you should create and activate a Python virtual environment. 
 
 ### Installing the library and dependencies
 
-First, clone the repository locally:
+If you _don't_ plan on modifying the source code, install from `git` using `pip`
 
-```bash
-git clone https://github.com/PathwayCommons/pubmed-dl.git
-cd pubmed-dl
+```
+pip install git+https://github.com/PathwayCommons/pubmed-dl
 ```
 
-Then, install
+Otherwise, clone the repository locally and then install
 
 ```bash
-pip install -e .
+git clone https://github.com/PathwayCommons/pubmed-dl
+cd pubmed-dl
+pip install --editable .
 ```
 
 ## Usage

@@ -24,8 +24,8 @@ setuptools.setup(
         "Programming Language :: Python :: 3.8",
         "Typing :: Typed",
     ],
-    entry_points = {
-        'console_scripts': ['pubmed-dl=pubmed_dl.main:main'],
+    entry_points={
+        "console_scripts": ["pubmed-dl=pubmed_dl.main:main"],
     },
     python_requires=">=3.8.0",
     install_requires=[
