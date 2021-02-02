@@ -1,9 +1,6 @@
 #!/usr/bin/env python
 import json
-import requests
-import os
-import sys
-from pubmed_dl.ncbi import get_list_pmid, 
+from pubmed_dl.ncbi import get_list_pmid, uids_to_docs
 
 def main():
     ab = open("test.json", 'w')
