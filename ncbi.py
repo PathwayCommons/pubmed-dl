@@ -138,6 +138,5 @@ def get_list_pmid(start, end):
         print(f"URL {str(count)}: {this_fetch}")
         count += 1
         fetch_r = requests.post(this_fetch)
-        for word in fetch_r.text.split():
-            store.append(word)
+        store = str.splitlines(fetch_r.text)
     return store
