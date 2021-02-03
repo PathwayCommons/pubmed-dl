@@ -123,44 +123,20 @@ def uids_to_docs(uids: List[str]) -> List[Dict[str, Collection[Any]]]:
 
 
 def get_list_pmid(start, end):
-    search_url = (
-        "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esearch.fcgi?db=pubmed&mindate="
-        + start
-        + "&maxdate="
-        + end
-        + "&term=(eng[Language])+AND+(Journal+Article[Publication+Type])&usehistory=y&retmode=json"
-    )
+    search_url = f"https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esearch.fcgi?&mindate={start}&maxdate={end}&retmode=json&db=pubmed&datetype=pdat&term=(eng[Language])+AND+(Journal+Article[Publication+Type])&usehistory=y"
     search_r = requests.post(search_url)
     data = search_r.json()
-    webenv = data["esearchresult"]["webenv"]
-    total = int(data["esearchresult"]["count"])
-    fetch_url = (
-        "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi?db=pubmed&retmax=9999&query_key=1&WebEnv="
-        + webenv
-    )
-    print("Total records:" + str(total))
+    query = data["esearchresult"]['querykey']
+    webenv = data["esearchresult"]['webenv']
+    total = int(data["esearchresult"]['count'])
+    fetch_url = f"https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi?&retmax=100000&query_key={query}&db=pubmed&rettype=uilist&retmode=text&WebEnv={webenv}"
+    print(f"Total records: {str(total)}")
     count = 1
     store = []
-    for i in range(0, total, 10000):
-        this_fetch = fetch_url + "&retstart=" + str(i)
-        print("URL " + str(count) + ": " + this_fetch)
+    for i in range(0, total, 100000):
+        this_fetch = f"{fetch_url}&retstart={str(i)}"
+        print(f"URL {str(count)}: {this_fetch}")
         count += 1
         fetch_r = requests.post(this_fetch)
-        f = open("pubmed_batch_" + str(i) + "_to_" + str(i + 9999) + ".json", "w")
-        f.write(fetch_r.text)
-        f.close()
-    for i in range(0, total, 10000):
-        f = open("pubmed_batch_" + str(i) + "_to_" + str(i + 9999) + ".json", "r")
-        data_file = f.read()
-        p_flag = False
-        for word in data_file.split():
-            if word == "pmid":
-                p_flag = True
-            elif p_flag:
-                p_flag = False
-                if word[:-1] not in store:
-                    store.append(word[:-1])
-        f.close()
-    for i in range(0, total, 10000):
-        os.remove("pubmed_batch_" + str(i) + "_to_" + str(i + 9999) + ".json")
+        store += fetch_r.text.splitlines()
     return store

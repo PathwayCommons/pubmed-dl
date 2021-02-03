@@ -1,20 +1,18 @@
 #!/usr/bin/env python
 import json
-
 from pubmed_dl.ncbi import get_list_pmid, uids_to_docs
 
-
 def main():
-    ab = open("test.json", "w")
+    ab = open("test.json", 'w')
     start = input("Enter start date (YYYY/MM/DD): ")
     end = input("Enter end date (YYYY/MM/DD): ")
-    here = uids_to_docs(get_list_pmid(start, end))
+    val = get_list_pmid(start,end)
+    here = uids_to_docs(val)
     for item in here:
         ab.write(json.dumps(item))
         ab.write("\n")
-    print("Done writing data from " + start + " to " + end + " onto file named: test.json")
+    print(f"Done writing data from {start} to {end} onto file named: test.json")
     ab.close()
-
 
 if __name__ == "__main__":
     main()
