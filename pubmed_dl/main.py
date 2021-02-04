@@ -13,6 +13,5 @@ def main():
                 f.write(f"{json.dumps(doc)}\n")
     print(f"Done writing data from {start} to {end} onto file named: test.json")
 
-
 if __name__ == "__main__":
     main()
