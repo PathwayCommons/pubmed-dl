@@ -7,14 +7,18 @@ from Bio import Medline
 from dotenv import load_dotenv
 from pydantic import BaseSettings
 
+
 def _compact(input: List) -> List:
     """Returns a list with None, False, and empty String removed"""
     return [x for x in input if x is not None and x is not False and x != ""]
 
+
 # -- Setup and initialization --
 MAX_EFETCH_RETMAX = 10000
+MAX_LIST_RETMAX = 100000
 dot_env_filepath = Path(__file__).absolute().parent.parent / ".env"
 load_dotenv(dot_env_filepath)
+
 
 class Settings(BaseSettings):
     app_name: str = os.getenv("APP_NAME", "")
@@ -26,8 +30,10 @@ class Settings(BaseSettings):
     eutils_efetch_url: str = eutils_base_url + os.getenv("EUTILS_EFETCH_BASENAME", "")
     eutils_esummary_url: str = eutils_base_url + os.getenv("EUTILS_ESUMMARY_BASENAME", "")
     http_request_timeout: int = int(os.getenv("HTTP_REQUEST_TIMEOUT", -1))
-        
+
+
 settings = Settings()
+
 
 # -- NCBI EUTILS --
 def _safe_request(url: str, method: str = "GET", headers={}, **opts):
@@ -50,7 +56,8 @@ def _safe_request(url: str, method: str = "GET", headers={}, **opts):
         raise
     else:
         return r
-    
+
+
 def _parse_medline(text: str) -> List[dict]:
     """Convert the rettype=medline to dict.
     See https://www.nlm.nih.gov/bsd/mms/medlineelements.html
@@ -58,6 +65,7 @@ def _parse_medline(text: str) -> List[dict]:
     f = io.StringIO(text)
     medline_records = Medline.parse(f)
     return medline_records
+
 
 def _get_eutil_records(eutil: str, id: List[str], **opts) -> dict:
     """Call one of the NCBI EUTILITIES and returns data as Python objects."""
@@ -77,6 +85,7 @@ def _get_eutil_records(eutil: str, id: List[str], **opts) -> dict:
         raise ValueError(f"Unsupported eutil '{eutil}''")
     eutilResponse = _safe_request(url, "POST", files=eutils_params)
     return _parse_medline(eutilResponse.text)
+
 
 def _medline_to_docs(records: List[Dict[str, str]]) -> List[Dict[str, Collection[Any]]]:
     """Return a list Documents given a list of Medline records
