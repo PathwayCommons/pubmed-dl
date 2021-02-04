@@ -11,11 +11,8 @@ def main():
     start = "2020/12/04"
     end = "2020/12/07"
     val = get_list_pmid(start,end)
-    val[-1] = "bruh"
-    here = uids_to_docs(val)
-    for item in uids_to_docs(val):
-        ab.write(json.dumps(item) + '\n')
-
+    for batch in uids_to_docs(val):
+        ab.write("\n".join([json.dumps(doc) for doc in batch]))  
     print(f"Done writing data from {start} to {end} onto file named: test.json")
     ab.close()
 
