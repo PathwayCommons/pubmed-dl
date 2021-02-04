@@ -101,6 +101,7 @@ def _medline_to_docs(records: List[Dict[str, str]]) -> List[Dict[str, Collection
         docs.append({"uid": pmid, "text": text})
     return docs
 
+
 # -- Public methods --
 def uids_to_docs(uids: List[str]) -> List[Dict[str, Collection[Any]]]:
     """Return uid, and text (i.e. title + abstract) given a PubMed uid"""
@@ -111,7 +112,7 @@ def uids_to_docs(uids: List[str]) -> List[Dict[str, Collection[Any]]]:
         lower = i * MAX_EFETCH_RETMAX
         upper = min([lower + MAX_EFETCH_RETMAX, num_uids])
         id = uids[lower:upper]
-        try:              
+        try:
             eutil_response = _get_eutil_records("efetch", id, rettype="medline", retmode="text")
         except Exception as e:
             print(f"Error encountered in uids_to_docs {e}")
@@ -121,13 +122,14 @@ def uids_to_docs(uids: List[str]) -> List[Dict[str, Collection[Any]]]:
             docs = docs + output
         yield docs
 
+
 def get_list_pmid(start, end):
     search_url = f"https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esearch.fcgi?&mindate={start}&maxdate={end}&retmode=json&db=pubmed&term=(eng[Language])+AND+(Journal+Article[Publication+Type])&datetype=pdat&usehistory=y"
     search_r = requests.post(search_url)
     data = search_r.json()
-    query = data["esearchresult"]['querykey']
-    webenv = data["esearchresult"]['webenv']
-    total = int(data["esearchresult"]['count'])
+    query = data["esearchresult"]["querykey"]
+    webenv = data["esearchresult"]["webenv"]
+    total = int(data["esearchresult"]["count"])
     fetch_url = f"https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi?&retmax={MAX_LIST_RETMAX}&query_key={query}&db=pubmed&rettype=uilist&retmode=text&WebEnv={webenv}"
     print(f"Total records: {str(total)}")
     count = 1
