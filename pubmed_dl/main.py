@@ -7,7 +7,6 @@ from dotenv import load_dotenv
 from pydantic import BaseSettings
 import time
 import typer
-from typing import Optional
 
 
 dot_env_filepath = Path(__file__).absolute().parent.parent / ".env"
@@ -22,22 +21,21 @@ settings = Settings()
 logging.basicConfig(level=settings.loglevel)
 
 
-def main(start: str, end: str, request_file: Optional[str] = typer.Argument(None)):
+def main(start: str, end: str, request_file: str):
     """
-    Main requires 2 arguments and an optional 3rd argument. 
+    Main requires 3 arguments. 
     
     The first one is start date (eg: YYYY/MM/DD).
+
     The second one is end date (eg: 2021/02/05).
     
-    The third one is the filename where the data needs to be written to, 
-    if not specified it will be written to 'test.json'.
+    The third one is the filename where the data needs to be written to.
 
     """
     start_time = time.time()
-    if request_file is None:
-        filename = "test.json"
-    else:
-        filename = request_file
+    output_filepath: Path = Path(request_file)
+    output_filepath.parents[0].mkdir(parents=True, exist_ok=True)
+    filename = request_file
     start_date = start
     end_date = end
     pmids = get_list_pmid(start_date, end_date)
