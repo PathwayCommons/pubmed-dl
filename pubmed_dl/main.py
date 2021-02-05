@@ -6,7 +6,6 @@ from pathlib import Path
 from dotenv import load_dotenv
 from pydantic import BaseSettings
 import time
-import typer
 from typing import Optional
 
 
@@ -52,3 +51,4 @@ def main(start: str, end: str, request_file: Optional[str] = typer.Argument(None
 
 if __name__ == "__main__":
     typer.run(main)
+
