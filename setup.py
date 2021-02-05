@@ -33,6 +33,7 @@ setuptools.setup(
         "requests>=2.25.1",
         "pydantic>=1.7.3",
         "python-dotenv>=0.15.0",
+        "typer>=0.3.2",
     ],
     extras_require={
         "dev": ["black", "coverage", "codecov", "flake8", "pytest", "pytest-cov", "mypy"]
