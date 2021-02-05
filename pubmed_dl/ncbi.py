@@ -2,6 +2,7 @@ import io
 import os
 from pathlib import Path
 from typing import Any, Collection, Dict, List
+
 import requests
 from Bio import Medline
 from dotenv import load_dotenv
@@ -124,7 +125,7 @@ def get_list_pmid(start, end):
     data = search_r.json()
     query = data["esearchresult"]["querykey"]
     webenv = data["esearchresult"]["webenv"]
-    total = int(data["esearchresult"]["count"]
+    total = int(data["esearchresult"]["count"])
     fetch_url = f"https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi?&retmax={MAX_LIST_RETMAX}&query_key={query}&db=pubmed&rettype=uilist&retmode=text&WebEnv={webenv}"
     print(f"Total records: {str(total)}")
     count = 1
@@ -136,4 +137,3 @@ def get_list_pmid(start, end):
         fetch_r = requests.post(this_fetch)
         store += fetch_r.text.splitlines()
     return store
-
