@@ -31,7 +31,7 @@ def main():
                 f.write(f"{json.dumps(doc)}\n")
     logging.info(f"Done writing data from {start} to {end} onto file named: test.json")
     duration = time.time() - start_time
-    logging.info(f"Retrieved {len(val)} docs in {duration}s")
+    logging.info(f"Total run time for {len(val)} docs: {duration}s")
 
 
 if __name__ == "__main__":
