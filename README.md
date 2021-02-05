@@ -62,17 +62,48 @@ An example usage is by getting the list of PMID's from ```get_list_pmid``` and t
 
 ### Command line
 
-Can be run on Command line with the command
+Can be run on Command line with the command, look below for required arguments
 
 ```bash
-pubmed-dl
+main.py --help
+```
+This prints out:
+
+```bash
+Usage: main.py [OPTIONS] START END REQUEST_FILE
+
+  Main requires 3 arguments.
+
+  The first one is start date (eg: YYYY/MM/DD).
+
+  The second one is end date (eg: 2021/02/05).
+
+  The third one is the filename where the data needs to be written to.
+
+Arguments:
+  START         [required]
+  END           [required]
+  REQUEST_FILE  [required]
+
+Options:
+  --install-completion [bash|zsh|fish|powershell|pwsh]
+                                  Install completion for the specified shell.
+  --show-completion [bash|zsh|fish|powershell|pwsh]
+                                  Show completion for the specified shell, to
+                                  copy it or customize the installation.
+
+  --help                          Show this message and exit.
 ```
 
-Program requires two dates to be inputted for start and end
+Program requires three arguments to be inputted by the user. 
+The first one is the start date in the ```YYYY/MM/DD``` format (e.g.: ```2021/02/04```). 
+The second one is the end date in the ```YYYY/MM/DD``` format (e.g.: ```2021/02/05```). 
+The third one is the filename where the data needs to be written to (e.g.: ```test.json```).
+
+An example input to retrieve the data from ```2021/02/04``` to ```2021/02/05``` and store the data to a file named ```test.json``` would look like:
 
 ```bash
-Enter start date (YYYY/MM/DD): "Enter your start date here"
-Enter end date (YYYY/MM/DD): "Enter your end date here"
+main.py 2021/02/04 2021/02/05 test.json
 ```
 
 The Program then runs and outputs the total records and an URL for every 10,000 records, until all records have been downloaded. Immediately after this the program grabs the PMID's of all the records and then passes the list of PMID's to the ```uids_to_docs``` method, which then gets all the data (Title, Abstract) and writes it to a file named ```test.json```.
@@ -80,5 +111,5 @@ The Program then runs and outputs the total records and an URL for every 10,000 
 After the Program is finished running, it will output a statement.
 
 ```bash
-Done writing data from "start date" to "end date" onto file named: test.json
+Done writing data from "start date" to "end date" onto file named: ```your file name```
 ```
