@@ -110,15 +110,13 @@ def uids_to_docs(uids: List[str]) -> List[Dict[str, Collection[Any]]]:
         lower = i * MAX_EFETCH_RETMAX
         upper = min([lower + MAX_EFETCH_RETMAX, num_uids])
         id = uids[lower:upper]
-        try:              
+        try:           
             eutil_response = _get_eutil_records("efetch", id, rettype="medline", retmode="text")
         except Exception as e:
             print(f"Error encountered in uids_to_docs {e}")
             raise e
         else:
-            output = _medline_to_docs(eutil_response)
-            docs = docs + output
-            yield docs
+            yield _medline_to_docs(eutil_response)
 
 def get_list_pmid(start, end):
     search_url = f"https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esearch.fcgi?&mindate={start}&maxdate={end}&retmode=json&db=pubmed&term=(eng[Language])+AND+(Journal+Article[Publication+Type])&datetype=pdat&usehistory=y"
