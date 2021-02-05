@@ -2,19 +2,24 @@ import io
 import os
 from pathlib import Path
 from typing import Any, Collection, Dict, List
+
 import requests
 from Bio import Medline
 from dotenv import load_dotenv
 from pydantic import BaseSettings
 
+
 def _compact(input: List) -> List:
     """Returns a list with None, False, and empty String removed"""
     return [x for x in input if x is not None and x is not False and x != ""]
 
+
 # -- Setup and initialization --
 MAX_EFETCH_RETMAX = 10000
+MAX_LIST_RETMAX = 100000
 dot_env_filepath = Path(__file__).absolute().parent.parent / ".env"
 load_dotenv(dot_env_filepath)
+
 
 class Settings(BaseSettings):
     app_name: str = os.getenv("APP_NAME", "")
@@ -26,8 +31,10 @@ class Settings(BaseSettings):
     eutils_efetch_url: str = eutils_base_url + os.getenv("EUTILS_EFETCH_BASENAME", "")
     eutils_esummary_url: str = eutils_base_url + os.getenv("EUTILS_ESUMMARY_BASENAME", "")
     http_request_timeout: int = int(os.getenv("HTTP_REQUEST_TIMEOUT", -1))
-        
+
+
 settings = Settings()
+
 
 # -- NCBI EUTILS --
 def _safe_request(url: str, method: str = "GET", headers={}, **opts):
@@ -50,7 +57,8 @@ def _safe_request(url: str, method: str = "GET", headers={}, **opts):
         raise
     else:
         return r
-    
+
+
 def _parse_medline(text: str) -> List[dict]:
     """Convert the rettype=medline to dict.
     See https://www.nlm.nih.gov/bsd/mms/medlineelements.html
@@ -58,6 +66,7 @@ def _parse_medline(text: str) -> List[dict]:
     f = io.StringIO(text)
     medline_records = Medline.parse(f)
     return medline_records
+
 
 def _get_eutil_records(eutil: str, id: List[str], **opts) -> dict:
     """Call one of the NCBI EUTILITIES and returns data as Python objects."""
@@ -77,6 +86,7 @@ def _get_eutil_records(eutil: str, id: List[str], **opts) -> dict:
         raise ValueError(f"Unsupported eutil '{eutil}''")
     eutilResponse = _safe_request(url, "POST", files=eutils_params)
     return _parse_medline(eutilResponse.text)
+
 
 def _medline_to_docs(records: List[Dict[str, str]]) -> List[Dict[str, Collection[Any]]]:
     """Return a list Documents given a list of Medline records
@@ -101,28 +111,26 @@ def uids_to_docs(uids: List[str]) -> List[Dict[str, Collection[Any]]]:
         lower = i * MAX_EFETCH_RETMAX
         upper = min([lower + MAX_EFETCH_RETMAX, num_uids])
         id = uids[lower:upper]
-        try:
+        try:           
             eutil_response = _get_eutil_records("efetch", id, rettype="medline", retmode="text")
         except Exception as e:
             print(f"Error encountered in uids_to_docs {e}")
             raise e
         else:
-            output = _medline_to_docs(eutil_response)
-            docs = docs + output
-    return docs
+            yield _medline_to_docs(eutil_response)
 
 def get_list_pmid(start, end):
-    search_url = f"https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esearch.fcgi?&mindate={start}&maxdate={end}&retmode=json&db=pubmed&datetype=pdat&term=(eng[Language])+AND+(Journal+Article[Publication+Type])&usehistory=y"
+    search_url = f"https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esearch.fcgi?&mindate={start}&maxdate={end}&retmode=json&db=pubmed&term=(eng[Language])+AND+(Journal+Article[Publication+Type])&datetype=pdat&usehistory=y"
     search_r = requests.post(search_url)
     data = search_r.json()
-    query = data["esearchresult"]['querykey']
-    webenv = data["esearchresult"]['webenv']
-    total = int(data["esearchresult"]['count'])
-    fetch_url = f"https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi?&retmax=100000&query_key={query}&db=pubmed&rettype=uilist&retmode=text&WebEnv={webenv}"
+    query = data["esearchresult"]["querykey"]
+    webenv = data["esearchresult"]["webenv"]
+    total = int(data["esearchresult"]["count"])
+    fetch_url = f"https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi?&retmax={MAX_LIST_RETMAX}&query_key={query}&db=pubmed&rettype=uilist&retmode=text&WebEnv={webenv}"
     print(f"Total records: {str(total)}")
     count = 1
     store = []
-    for i in range(0, total, 100000):
+    for i in range(0, total, MAX_LIST_RETMAX):
         this_fetch = f"{fetch_url}&retstart={str(i)}"
         print(f"URL {str(count)}: {this_fetch}")
         count += 1
