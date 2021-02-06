@@ -21,7 +21,7 @@ settings = Settings()
 logging.basicConfig(level=settings.loglevel)
 
 
-def main(start: str, end: str, request_file: str):
+def main(start_date: str, end_date: str, request_file: str):
     """
     Main requires 3 arguments. 
     
@@ -35,8 +35,6 @@ def main(start: str, end: str, request_file: str):
     start_time = time.time()
     output_filepath: Path = Path(request_file)
     output_filepath.parents[0].mkdir(parents=True, exist_ok=True)
-    start_date = start
-    end_date = end
     pmids = get_list_pmid(start_date, end_date)
     with open(output_filepath, "w") as f:
         for batch in uids_to_docs(pmids):
