@@ -32,7 +32,7 @@ pip install --editable .
 
 The example and explanations below are based on the script's behaviour on Python 3.8
 
-Use an API key provided to you from NCBI in the ```.env``` file for the expected workings of this program.
+Use an API key provided to you from NCBI in the `.env` file for the expected workings of this program.
 
 ### Public methods
 
@@ -58,27 +58,31 @@ This method also returns a list of all PMID's that were uploaded in the requeste
 
 #### Example
 
-An example usage is by getting the list of PMID's from ```get_list_pmid``` and then passing that list to the ```uids_to_docs``` for the data of all the PMID's in the given time frame.
+An example usage is by getting the list of PMID's from `get_list_pmid` and then passing that list to the `uids_to_docs` for the data of all the PMID's in the given time frame.
 
 ### Command line
 
-Can be run on Command line with the command
+Can be run on Command line. Call the below command for usage details
 
 ```bash
-pubmed-dl
+pubmed-dl --help
 ```
 
-Program requires two dates to be inputted for start and end
+Program requires three arguments to be inputted by the user. 
+The first one is the start date in the `YYYY/MM/DD` format (e.g.: `2021/02/04`). 
+The second one is the end date in the `YYYY/MM/DD` format (e.g.: `2021/02/05`). 
+The third one is the filename where the data needs to be written to (e.g.: `test.json`).
+
+An example input to retrieve the data from `2021/02/04` to `2021/02/05` and store the data to a file named `test.json` would look like:
 
 ```bash
-Enter start date (YYYY/MM/DD): "Enter your start date here"
-Enter end date (YYYY/MM/DD): "Enter your end date here"
+pubmed-dl 2021/02/04 2021/02/05 test.json
 ```
 
-The Program then runs and outputs the total records and an URL for every 10,000 records, until all records have been downloaded. Immediately after this the program grabs the PMID's of all the records and then passes the list of PMID's to the ```uids_to_docs``` method, which then gets all the data (Title, Abstract) and writes it to a file named ```test.json```.
+The Program then runs and outputs the total records and an URL for every 10,000 records, until all records have been downloaded. Immediately after this the program grabs the PMID's of all the records and then passes the list of PMID's to the `uids_to_docs` method, which then gets all the data (Title, Abstract) and writes it to a file named `test.json`.
 
 After the Program is finished running, it will output a statement.
 
 ```bash
-Done writing data from "start date" to "end date" onto file named: test.json
+Done writing data from "start date" to "end date" onto file named: `your file name`
 ```
