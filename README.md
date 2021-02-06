@@ -76,7 +76,7 @@ The third one is the filename where the data needs to be written to (e.g.: `test
 An example input to retrieve the data from `2021/02/04` to `2021/02/05` and store the data to a file named `test.json` would look like:
 
 ```bash
-main.py 2021/02/04 2021/02/05 test.json
+pubmed-dl 2021/02/04 2021/02/05 test.json
 ```
 
 The Program then runs and outputs the total records and an URL for every 10,000 records, until all records have been downloaded. Immediately after this the program grabs the PMID's of all the records and then passes the list of PMID's to the `uids_to_docs` method, which then gets all the data (Title, Abstract) and writes it to a file named `test.json`.
