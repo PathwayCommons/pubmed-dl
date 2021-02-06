@@ -35,15 +35,14 @@ def main(start: str, end: str, request_file: str):
     start_time = time.time()
     output_filepath: Path = Path(request_file)
     output_filepath.parents[0].mkdir(parents=True, exist_ok=True)
-    filename = request_file
     start_date = start
     end_date = end
     pmids = get_list_pmid(start_date, end_date)
-    with open(filename, "w") as f:
+    with open(output_filepath, "w") as f:
         for batch in uids_to_docs(pmids):
             for doc in batch:
                 f.write(f"{json.dumps(doc)}\n")
-    logging.info(f"Done writing data from {start_date} to {end_date} onto file named: {filename}")
+    logging.info(f"Done writing data from {start_date} to {end_date} onto file named: {output_filepath}")
     duration = time.time() - start_time
     logging.info(f"Total run time for {len(pmids)} docs: {duration}s")
 
