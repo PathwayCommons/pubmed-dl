@@ -24,10 +24,8 @@ setuptools.setup(
         "Programming Language :: Python :: 3.8",
         "Typing :: Typed",
     ],
-    entry_points={
-        "console_scripts": ["pubmed-dl=pubmed_dl.main:main"],
-    },
-    python_requires=">=3.8.0",
+    scripts=["pubmed_dl/bin/pubmed-dl"],
+    python_requires=">=3.8.0,<3.9.0",
     install_requires=[
         "biopython>=1.78",
         "requests>=2.25.1",
