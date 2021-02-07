@@ -1,1 +1,1 @@
-from pubmed_dl.main import uids_to_docs, get_list_pmid
+from pubmed_dl.ncbi import get_list_pmid, uids_to_docs
