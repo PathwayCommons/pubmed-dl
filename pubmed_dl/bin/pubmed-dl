@@ -6,6 +6,7 @@ import time
 from pathlib import Path
 
 import typer
+from typing import Optional
 from dotenv import load_dotenv
 from pydantic import BaseSettings
 
@@ -23,7 +24,7 @@ settings = Settings()
 logging.basicConfig(level=settings.loglevel)
 
 
-def main(start_date: str, end_date: str, request_file: str):
+def main(start_date: str, end_date: str, request_file: str, progress_bar: Optional[bool] = typer.Argument(True)):
     """
     Main requires 3 arguments.
 
@@ -38,14 +39,13 @@ def main(start_date: str, end_date: str, request_file: str):
     output_filepath: Path = Path(request_file)
     output_filepath.parents[0].mkdir(parents=True, exist_ok=True)
     pmids = get_list_pmid(start_date, end_date)
-    count = 0
     with open(output_filepath, "w") as f:
         with typer.progressbar(length = len(pmids), label = "Processing") as progress:
             for batch in uids_to_docs(pmids):
                     for doc in batch:
                         f.write(f"{json.dumps(doc)}\n")
-                        count += 1
-                        progress.update(1)
+                        if progress_bar is True:
+                            progress.update(1)
                     print("")
     logging.info(
         f"Done writing data from {start_date} to {end_date} onto file named: {output_filepath}"
