@@ -39,9 +39,12 @@ def main(start_date: str, end_date: str, request_file: str):
     output_filepath.parents[0].mkdir(parents=True, exist_ok=True)
     pmids = get_list_pmid(start_date, end_date)
     with open(output_filepath, "w") as f:
-        for batch in uids_to_docs(pmids):
-            for doc in batch:
-                f.write(f"{json.dumps(doc)}\n")
+        with typer.progressbar(length = len(pmids), label = "Processing") as progress:
+            for batch in uids_to_docs(pmids):
+                    for doc in batch:
+                        f.write(f"{json.dumps(doc)}\n")
+                        progress.update(1)
+                    print("")
     logging.info(
         f"Done writing data from {start_date} to {end_date} onto file named: {output_filepath}"
     )
