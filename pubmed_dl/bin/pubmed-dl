@@ -24,7 +24,7 @@ settings = Settings()
 logging.basicConfig(level=settings.loglevel)
 
 
-def main(start_date: str, end_date: str, request_file: str, progress_bar: Optional[bool] = typer.Argument(True)):
+def main(start_date: str, end_date: str, request_file: str, progress_bar: bool = typer.Option(True)):
     """
     Main requires 3 arguments.
 
