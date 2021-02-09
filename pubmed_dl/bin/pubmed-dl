@@ -6,7 +6,6 @@ import time
 from pathlib import Path
 
 import typer
-from typing import Optional
 from dotenv import load_dotenv
 from pydantic import BaseSettings
 
