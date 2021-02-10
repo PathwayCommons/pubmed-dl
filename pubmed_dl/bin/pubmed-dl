@@ -23,7 +23,13 @@ settings = Settings()
 logging.basicConfig(level=settings.loglevel)
 
 
-def main(start_date: str = typer.Argument("",help = "The start date for data retrieval"), end_date: str = typer.Argument("",help = "The end date for data retrieval"), request_file: str = typer.Argument("",help = "The filename to write retrieved data to"), progress_bar: bool = typer.Option(True, help = "To display progress bar")):
+def main(start_date: str = typer.Argument(...,help = "The start date for data retrieval"), end_date: str = typer.Argument(...,help = "The end date for data retrieval"), request_file: str = typer.Argument(...,help = "The filename to write retrieved data to"), progress_bar: bool = typer.Option(True, help = "To display progress bar")):
+    """
+    The data to be downloaded is done in batches of articles from PubMed that are
+    published between start_date and end_date.
+
+    The request_file is where the retrieved data, is finally written to.
+    """
     start_time = time.time()
     output_filepath: Path = Path(request_file)
     output_filepath.parents[0].mkdir(parents=True, exist_ok=True)
