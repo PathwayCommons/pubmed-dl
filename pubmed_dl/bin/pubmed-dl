@@ -23,16 +23,12 @@ settings = Settings()
 logging.basicConfig(level=settings.loglevel)
 
 
-def main(start_date: str, end_date: str, request_file: str):
+def main(start_date: str = typer.Argument(...,help = "The start date for data retrieval"), end_date: str = typer.Argument(...,help = "The end date for data retrieval"), request_file: str = typer.Argument(...,help = "The filename to write retrieved data to"), progress_bar: bool = typer.Option(True, help = "To display progress bar")):
     """
-    Main requires 3 arguments.
+    The data to be downloaded is done in batches of articles from PubMed that are
+    published between start_date and end_date.
 
-    The first one is start date (eg: YYYY/MM/DD).
-
-    The second one is end date (eg: 2021/02/05).
-
-    The third one is the filename where the data needs to be written to.
-
+    The request_file is where the retrieved data, is finally written to.
     """
     start_time = time.time()
     output_filepath: Path = Path(request_file)
@@ -43,7 +39,8 @@ def main(start_date: str, end_date: str, request_file: str):
             for batch in uids_to_docs(pmids):
                     for doc in batch:
                         f.write(f"{json.dumps(doc)}\n")
-                        progress.update(1)
+                        if progress_bar is True:
+                            progress.update(1)
                     print("")
     logging.info(
         f"Done writing data from {start_date} to {end_date} onto file named: {output_filepath}"
